@@ -1,9 +1,15 @@
 Mask RCNN for Human Pose Estimation
 -----------------------------------
 
-The original code is from "https://github.com/matterport/Mask_RCNN" on Python 3, Keras, and TensorFlow. The code reproduce the work of "https://arxiv.org/abs/1703.06870" for human pose estimation.
-This project aims to addressing the [issue#2][1]. 
-When I start it, I refer to another project by [@RodrigoGantier][2] .
+This repository includes the codes for evaluation, with some modifications to make most of the functions in the original codes work well for Keypoint Detection task.
+
+The original code is from "https://github.com/Superlee506/Mask_RCNN_Humanpose" and "https://github.com/matterport/Mask_RCNN" on Python 3, Keras, and TensorFlow. The code reproduce the work of "https://arxiv.org/abs/1703.06870" for human pose estimation.
+
+## Problems
+* Low performance.
+The visualization of the keypoint detection seems okay but the evaluation results are much lower than the paper shows. I have tried trainning several times and the results were almost the same.
+* NOT supporting Multi-GPUs.
+
 ## However RodrigoGantier's project has the following problems:
 *  It's codes have few comments and still use the oringal names from [@Matterport][3]'s project, which make the project hard to understand. 
 *  When I trained this model, I found it's hard to converge as described in [issue#3][4].
@@ -14,12 +20,28 @@ When I start it, I refer to another project by [@RodrigoGantier][2] .
 * Keras 2.0.8+
 * Jupyter Notebook
 * Numpy, skimage, scipy, Pillow, cython, h5py
+
 # Getting Started
+* Please search "/home" to change the paths before you run any codes.
 * [inference_humanpose.ipynb][5] shows how to predict the keypoint of human using my trained model. It randomly chooses a image from the validation set. You can download pre-trained COCO weights for human pose estimation (mask_rcnn_coco_humanpose.h5) from the releases page (https://github.com/Superlee506/Mask_RCNN_Humanpose/releases).
-* [train_humanpose.ipynb][6] shows how to train the model step by step. You can also use "python train_humanpose.py" to  start training.
+* [train_humanpose.ipynb][6] shows how to train the model step by step. You can also use "python train_humanpose.py" to start training.
 * [inspect_humanpose.ipynb][7] visulizes the proposal target keypoints to check it's validity. It also outputs some innner layers to help us debug the model.
 * [demo_human_pose.ipynb][8] A new demo for images input from the "images" folder. [04-11-2018]
 * [video_demo.py][9] A new demo for video input from camera.[04-11-2018]
+
+# Evaluation
+COCO 2017 Keypoint Detection Task(http://cocodataset.org/#keypoints-2017)  
+person_keypoints_val2017.json  
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.204  
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.564  
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.100  
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.182  
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.253  
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.277  
+ Average Recall     (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.642  
+ Average Recall     (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.202  
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.232  
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.338  
 
 # Discussion
 * I convert the joint coordinates into an integer label ([0, 56*56)), and use  `tf.nn.sparse_softmax_cross_entropy_with_logits` as the loss function. This refers to the original [Detectron code][10] which is key reason why my loss can converge quickly.

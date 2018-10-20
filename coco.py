@@ -112,7 +112,7 @@ Person_ID = 1
 ############################################################
 
 class CocoDataset(utils.Dataset):
-    def __init__(self, task_type= "instances",class_map = None):
+    def __init__(self, task_type= "person_keypoints",class_map = None):
         assert task_type in ["instances", "person_keypoints"]
         self.task_type = task_type
         # the connection between 2 close keypoints
@@ -426,7 +426,7 @@ class CocoDataset(utils.Dataset):
 #  COCO Evaluation
 ############################################################
 
-def build_coco_results(dataset, image_ids, rois, class_ids, scores, masks):
+def build_coco_results(dataset, image_ids, rois, class_ids, scores, masks, keypoints):
     """Arrange resutls to match COCO specs in http://cocodataset.org/#format
     """
     # If no results, return an empty list
@@ -441,13 +441,15 @@ def build_coco_results(dataset, image_ids, rois, class_ids, scores, masks):
             score = scores[i]
             bbox = np.around(rois[i], 1)
             mask = masks[:, :, i]
+            keypoint = keypoints[i]
 
             result = {
                 "image_id": image_id,
                 "category_id": dataset.get_source_class_id(class_id, "coco"),
                 "bbox": [bbox[1], bbox[0], bbox[3] - bbox[1], bbox[2] - bbox[0]],
                 "score": score,
-                "segmentation": maskUtils.encode(np.asfortranarray(mask))
+                "segmentation": maskUtils.encode(np.asfortranarray(mask)),
+                "keypoints": keypoint.reshape(-1)
             }
             results.append(result)
     return results
@@ -479,13 +481,14 @@ def evaluate_coco(model, dataset, coco, eval_type="bbox", limit=0, image_ids=Non
 
         # Run detection
         t = time.time()
-        r = model.detect([image], verbose=0)[0]
+        r = model.detect_keypoint([image], verbose=0)[0]
+        #print(type(r["keypoints"]), r["keypoints"].shape)
         t_prediction += (time.time() - t)
 
         # Convert results to COCO format
         image_results = build_coco_results(dataset, coco_image_ids[i:i + 1],
                                            r["rois"], r["class_ids"],
-                                           r["scores"], r["masks"])
+                                           r["scores"], r["masks"], r["keypoints"])
         results.extend(image_results)
 
     # Load results. This modifies results with additional attributes.
@@ -627,10 +630,11 @@ if __name__ == '__main__':
     elif args.command == "evaluate":
         # Validation dataset
         dataset_val = CocoDataset()
-        coco = dataset_val.load_coco(args.dataset, "minival", year=args.year, return_coco=True, auto_download=args.download)
+        # coco = dataset_val.load_coco(args.dataset, "minival", year=args.year, return_coco=True, auto_download=args.download)
+        coco = dataset_val.load_coco(args.dataset, "val", year=args.year, return_coco=True, auto_download=args.download)
         dataset_val.prepare()
         print("Running COCO evaluation on {} images.".format(args.limit))
-        evaluate_coco(model, dataset_val, coco, "bbox", limit=int(args.limit))
+        evaluate_coco(model, dataset_val, coco, "keypoints", limit=int(args.limit))
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'evaluate'".format(args.command))
