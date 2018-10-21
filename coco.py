@@ -455,7 +455,7 @@ def build_coco_results(dataset, image_ids, rois, class_ids, scores, masks, keypo
     return results
 
 
-def evaluate_coco(model, dataset, coco, eval_type="bbox", limit=0, image_ids=None):
+def evaluate_coco(model, dataset, coco, eval_type="keypoints", limit=0, image_ids=None):
     """Runs official COCO evaluation.
     dataset: A Dataset object with valiadtion data
     eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
